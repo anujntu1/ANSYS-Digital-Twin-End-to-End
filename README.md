@@ -143,7 +143,7 @@ df.to_csv("training_data.csv", index=False)
 
 ```bash
 # Static structural domain — parametric twin evaluation
-python examples/rubber_press_twin_demo.py
+python examples/structural_twin_demo.py
 
 # CFD thermal domain — data center cooling twin
 python examples/data_center_twin_demo.py

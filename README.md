@@ -66,12 +66,12 @@
 
 | Domain | ANSYS Tool | ROM Inputs | Outputs |
 |--------|-----------|------------|---------|
-| **Rubber Press Machine** | ANSYS Mechanical (Static Structural) | Press displacement | Max stress, deformation, reaction force |
-| **Data Center Cooling** | ANSYS Fluent | IT power, inlet temp, airflow | Max server temp, PUE, bypass fraction |
-| **Glue Dispensing** | ANSYS Fluent (VOF multiphase) | Flow rate, viscosity, nozzle position | Bead shape, fill uniformity, pressure |
-| **Aerodynamics** | ANSYS Fluent | Velocity, angle of attack | Drag (Cd), lift (Cl), pressure |
-| **Thermal-Structural** | ANSYS Mechanical (Coupled) | Power, ambient temp | Thermal stress, junction temp |
-| **Crash Analysis** | LS-DYNA | Impact velocity, material props | Peak stress, energy absorption, HIC |
+| **Static Structural** | ANSYS Mechanical | Displacement, load, material props | Max stress, deformation, reaction force |
+| **Thermal Management** | ANSYS Fluent / Icepak | Power, inlet temp, airflow | Max temperature, PUE, bypass fraction |
+| **Multiphase CFD** | ANSYS Fluent (VOF) | Flow rate, viscosity, geometry params | Phase interface, pressure, fill quality |
+| **External Aerodynamics** | ANSYS Fluent | Velocity, angle of attack, ride height | Drag (Cd), lift (Cl), pressure distribution |
+| **Thermal-Structural** | ANSYS Mechanical (Coupled) | Power, ambient temp | Thermal stress, junction temperature |
+| **High-Impact Dynamics** | LS-DYNA | Impact velocity, material props | Peak stress, energy absorption, HIC |
 
 ---
 
@@ -115,22 +115,22 @@ pip install pytwin
 ```python
 from src.twin_model_evaluator import TwinModelEvaluator
 
-# Load your .twin file
-evaluator = TwinModelEvaluator("rubber_press.twin")
+# Load your .twin file exported from ANSYS Twin Builder
+evaluator = TwinModelEvaluator("your_model.twin")
 evaluator.load()
 evaluator.initialize()
 
 print(evaluator.twin_info)
-# → {'inputs': ['Displacement_mm'], 'outputs': ['MaxStress_MPa', ...]}
+# → {'inputs': ['input_param_1', 'input_param_2'], 'outputs': ['output_1', 'output_2']}
 
-# Single evaluation
-result = evaluator.evaluate({"Displacement_mm": 10.0})
+# Single evaluation — millisecond speed
+result = evaluator.evaluate({"input_param_1": 10.0, "input_param_2": 25.0})
 print(result)
-# → {"MaxStress_MPa": 8.23, "MaxDeformation_mm": 9.97}
+# → {"output_1": 8.23, "output_2": 9.97}
 
-# Generate 5000-sample ML training dataset
+# Generate large ML training dataset via LHS sampling
 df = evaluator.generate_training_dataset(
-    param_space={"Displacement_mm": (0.0, 20.0)},
+    param_space={"input_param_1": (0.0, 20.0), "input_param_2": (10.0, 50.0)},
     n_samples=5000,
     method="lhs",
 )
@@ -142,13 +142,13 @@ df.to_csv("training_data.csv", index=False)
 ## Run the Demos
 
 ```bash
-# Rubber press machine (mechanical structural domain)
+# Static structural domain — parametric twin evaluation
 python examples/rubber_press_twin_demo.py
 
-# Data center thermal (CFD domain)
+# CFD thermal domain — data center cooling twin
 python examples/data_center_twin_demo.py
 
-# Runtime monitoring: sensor fusion + anomaly detection (server rack twin)
+# Runtime monitoring — sensor fusion + anomaly detection
 python examples/twin_pipeline_demo.py
 ```
 
@@ -168,5 +168,5 @@ python examples/twin_pipeline_demo.py
 ## Author
 
 **Anuj Chauhan, Ph.D.**  
-Section Manager, Software R&D — Pegatron Corporation  
+Software R&D — Pegatron Corporation  
 [LinkedIn](https://www.linkedin.com/in/anuj-chauhan-phd-5a8ba411a/) | anujntuchem@gmail.com
